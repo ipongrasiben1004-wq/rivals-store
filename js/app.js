@@ -234,6 +234,9 @@ const App = (function () {
     updateUserUI(user);
     if (user) {
       showToast(`歡迎回來，${user.username}！`);
+      // 登入後確保立刻隱藏登入引導彈窗
+      closeDiscordPromptModal();
+      sessionStorage.setItem('rivals_prompt_dismissed', 'true');
     } else {
       showToast('已登出 Discord 身分。');
     }
@@ -241,19 +244,36 @@ const App = (function () {
 
   // 顧客自 Discord 連結前來時的詢問彈窗
   function checkDiscordReferral() {
+    // 1. 若已經登入，絕不彈出！
+    if (AuthService.isLoggedIn()) {
+      return;
+    }
+
+    // 2. 若網址正帶有 access_token (正在進行授權回跳)，絕不彈出！
+    if (window.location.hash && window.location.hash.includes('access_token=')) {
+      return;
+    }
+
+    // 3. 若本次瀏覽已經關閉過此彈窗，絕不再打擾！
+    if (sessionStorage.getItem('rivals_prompt_dismissed') === 'true') {
+      return;
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const fromDc = urlParams.get('ref') === 'discord' || document.referrer.includes('discord');
     
-    // 若未登入且來自 Discord (或首次造訪)，自動彈出登入詢問
-    if (!AuthService.isLoggedIn()) {
-      setTimeout(() => {
+    // 只有在未登入且未關閉過時，延遲 1.2 秒友善提示
+    setTimeout(() => {
+      // 再次確認這段時間內沒有登入
+      if (!AuthService.isLoggedIn() && sessionStorage.getItem('rivals_prompt_dismissed') !== 'true') {
         showDiscordPromptModal(fromDc);
-      }, 1000);
-    }
+      }
+    }, 1200);
   }
 
   // 顯示 Discord 登入詢問框 (需求：自動詢問是否使用剛剛的 DC 登入)
   function showDiscordPromptModal(isFromDc = true) {
+    if (AuthService.isLoggedIn()) return;
     const modal = document.getElementById('discord-prompt-modal');
     if (!modal) return;
     const promptText = document.getElementById('prompt-modal-text');
@@ -268,6 +288,8 @@ const App = (function () {
   function closeDiscordPromptModal() {
     const modal = document.getElementById('discord-prompt-modal');
     if (modal) modal.classList.remove('active');
+    // 記錄已經看過/關閉，本次會話不再跳出
+    sessionStorage.setItem('rivals_prompt_dismissed', 'true');
   }
 
   // 開啟手動/進階登入 Modal

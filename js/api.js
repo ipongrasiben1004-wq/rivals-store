@@ -40,8 +40,21 @@ const ApiService = (function () {
       }
       throw new Error('伺服器回傳格式非 JSON 或清單為空');
     } catch (err) {
-      console.warn('無法從遠端 API 讀取商品，啟動智慧本機備援：', err.message);
+      console.warn('無法從遠端 API 讀取商品，嘗試讀取伺服器共享資料檔：', err.message);
       isApiOnline = false;
+
+      // 嘗試讀取 GitHub 託管的共享商品資料檔 (跨裝置一致)
+      try {
+        const localFileRes = await fetch(`./data/products.json?t=${Date.now()}`);
+        if (localFileRes.ok) {
+          const fileData = await localFileRes.json();
+          if (Array.isArray(fileData) && fileData.length > 0) {
+            return { success: true, products: fileData, source: 'shared_file' };
+          }
+        }
+      } catch (fileErr) {
+        console.warn('讀取 data/products.json 失敗：', fileErr);
+      }
 
       // 嘗試讀取業主上次在本地修改過的快取，若無則使用預設清單
       const cached = localStorage.getItem('rivals_cached_products');

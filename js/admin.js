@@ -244,6 +244,21 @@ const AdminService = (function () {
     }
   }
 
+  // 匯出/下載最新的 products.json 檔案 (跨裝置永久同步)
+  function exportProductsJson() {
+    const jsonStr = JSON.stringify(workingProducts, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'products.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    alert('已下載「products.json」！\n只需將此檔案放入 data/ 資料夾並推送到 GitHub，所有手機與顧客裝置就會立刻同步最新價格！');
+  }
+
   // 渲染伺服器設定狀態
   function renderApiSettings() {
     const inputUrl = document.getElementById('admin-api-url-input');
@@ -273,6 +288,7 @@ const AdminService = (function () {
     saveEditForm,
     syncToServer,
     resetToDefaults,
+    exportProductsJson,
     saveApiUrl
   };
 })();
