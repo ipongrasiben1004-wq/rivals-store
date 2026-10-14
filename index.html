@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROBLOX RIVALS 商城 | 官方戰術武器與特權直購平台</title>
+  <meta name="description" content="專為 Roblox Rivals 玩家打造的武器造型、箱子鑰匙與 VIP 通行證商城。串接 Discord 商城機器人自動開單，支援全自動付款核銷。">
+  
+  <!-- CSS 核心樣式 -->
+  <link rel="stylesheet" href="css/style.css">
+  
+  <!-- Favicon 戰術標誌 -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>">
+</head>
+<body>
+
+  <!-- 頂部戰術導覽列 -->
+  <header class="tactical-navbar">
+    <div class="nav-container">
+      <div class="brand-group">
+        <div class="brand-badge">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>RIVALS <span>STORE</span></h1>
+          <div class="brand-sub">ROBLOX TACTICAL ARSENAL</div>
+        </div>
+        <div id="server-status-pill" class="status-pill standby" title="伺服器連線狀態">
+          <span class="dot"></span> 偵測連線中...
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <!-- 音效切換 -->
+        <button id="btn-audio-toggle" class="btn-icon-square" title="開關電競音效">🔊</button>
+
+        <!-- 業主專屬後台入口 (僅 wenio0509 顯示) -->
+        <button id="btn-nav-admin" class="btn-admin-portal" style="display: none;" onclick="AdminService.openAdminModal()">
+          👑 業主後台 (wenio0509)
+        </button>
+
+        <!-- 購物車抽屜按鈕 -->
+        <button class="btn-cart-trigger" onclick="App.toggleCartDrawer(true)">
+          🛒 戰術背囊
+          <span class="cart-count-badge" style="display: none;">0</span>
+        </button>
+
+        <!-- Discord 登入身分區 -->
+        <div id="nav-auth-section">
+          <!-- 由 JS 動態注入 -->
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero 橫幅看板 -->
+  <section class="tactical-hero">
+    <div class="hero-banner-frame">
+      <div class="hero-text-content">
+        <div class="hero-tag">⚡ VERIFIED ROBLOX RIVALS DEALER</div>
+        <h2 class="hero-title">頂級戰術軍備 <em>即時直通結算</em></h2>
+        <p class="hero-desc">
+          挑選您心儀的 Rivals 武器外觀、神話箱鑰匙與通行證。透過 Discord 機器人一鍵自動成立專屬交易頻道，享受秒級發貨體驗！
+        </p>
+        <div class="hero-meta-strip">
+          <div class="meta-item"><span class="meta-icon">✓</span> 支援 Roblox 禮品卡 / PIN 碼</div>
+          <div class="meta-item"><span class="meta-icon">✓</span> Discord 機器人全自動開單</div>
+          <div class="meta-item"><span class="meta-icon">✓</span> 業主 wenio0509 官方認證</div>
+        </div>
+      </div>
+
+      <div class="hero-stats-badge">
+        <div class="stats-num">100%</div>
+        <div class="stats-label">正規管道出貨保證</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 控制列：分類篩選與搜尋 -->
+  <section class="tactical-controls">
+    <div class="category-nav">
+      <button class="cat-pill active" data-category="all">全部裝備</button>
+      <button class="cat-pill" data-category="鑰匙與箱子">鑰匙與箱子</button>
+      <button class="cat-pill" data-category="限定武器造型">限定武器造型</button>
+      <button class="cat-pill" data-category="通行證與特權">通行證與特權</button>
+      <button class="cat-pill" data-category="自訂特效">自訂特效</button>
+    </div>
+
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" class="search-input" placeholder="搜尋 Rivals 道具名稱...">
+    </div>
+  </section>
+
+  <!-- 商品網格 -->
+  <main class="products-section">
+    <div id="products-grid" class="products-grid">
+      <!-- 由 JS 動態渲染 -->
+    </div>
+  </main>
+
+  <!-- 購物車抽屜 (Drawer) -->
+  <div id="drawer-backdrop" class="drawer-backdrop" onclick="App.toggleCartDrawer(false)"></div>
+  <aside id="cart-drawer" class="cart-drawer">
+    <div class="drawer-header">
+      <h3>🎒 戰術背囊 (購物車)</h3>
+      <button class="btn-drawer-close" onclick="App.toggleCartDrawer(false)">✕</button>
+    </div>
+
+    <div id="cart-items-container" class="drawer-body">
+      <!-- 購物車商品列表動態注入 -->
+    </div>
+
+    <div class="drawer-footer">
+      <div class="roblox-id-input-box">
+        <label for="input-roblox-username">🎮 您的 Roblox 使用者名稱 (填寫便於出貨)：</label>
+        <input type="text" id="input-roblox-username" placeholder="例：ProGamer_Rivals99">
+      </div>
+
+      <div class="cart-summary-line">
+        <span>應付總額：</span>
+        <div class="cart-total-display">
+          <span class="currency-symbol">R$</span>
+          <span id="cart-total-amount">0</span>
+          <em>Robux</em>
+        </div>
+      </div>
+
+      <button id="btn-checkout-submit" class="btn-submit-order" onclick="CartService.submitOrder()">
+        <span>⚡ 確認送出訂單並連結 DC</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ======================================================= -->
+  <!-- 彈窗系統 -->
+  <!-- ======================================================= -->
+
+  <!-- 彈窗 1：顧客進站 Discord 授權自動詢問 -->
+  <div id="discord-prompt-modal" class="tactical-modal-backdrop">
+    <div class="tactical-modal-card" style="max-width: 480px; text-align: center;">
+      <div class="modal-body" style="padding: 32px 24px;">
+        <div style="font-size: 3rem; margin-bottom: 12px;">🎮</div>
+        <h3 style="font-family: var(--font-display); font-size: 1.4rem; color: #fff; margin-bottom: 10px;">
+          歡迎來到 RIVALS 商城
+        </h3>
+        <p id="prompt-modal-text" style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; margin-bottom: 24px;">
+          偵測到您從 Discord 群組前來！是否直接使用您的 Discord 帳號登入進行選購？
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button class="btn-discord-login" style="height: 46px; justify-content: center;" onclick="AuthService.triggerDiscordOAuth()">
+            <span>確認前往 Discord 官方授權登入</span>
+          </button>
+          <button class="cat-pill" style="background: transparent; border: 1px solid var(--border-subtle);" onclick="App.closeDiscordPromptModal()">
+            先逛逛商品（訪客模式）
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 彈窗 2：手動/快速 Discord 登入 -->
+  <div id="login-modal" class="tactical-modal-backdrop">
+    <div class="tactical-modal-card">
+      <div class="modal-header">
+        <h3>🔑 Discord 身分登入</h3>
+        <button class="btn-modal-close" onclick="App.closeLoginModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="login-modal-notice" style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 20px;">
+          請輸入您的 Discord 使用者名稱，系統將自動連結您的個人檔案與訂單頻道。
+        </p>
+
+        <div style="margin-bottom: 20px;">
+          <label style="display:block; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px;">
+            您的 Discord 使用者名稱 (Username)：
+          </label>
+          <input type="text" id="login-input-username" class="search-input" placeholder="例：roblox_player 或 wenio0509" style="width: 100%;">
+        </div>
+
+        <button class="btn-submit-order" style="margin-bottom: 16px;" onclick="App.submitQuickLogin(document.getElementById('login-input-username').value)">
+          立即確認登入
+        </button>
+
+        <div style="border-top: 1px solid var(--border-subtle); padding-top: 16px;">
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px;">快速切換身分測試：</div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="cat-pill" style="font-size: 0.78rem; padding: 6px 12px;" onclick="App.submitQuickLogin('wenio0509', true)">
+              👑 業主快速登入 (wenio0509)
+            </button>
+            <button class="cat-pill" style="font-size: 0.78rem; padding: 6px 12px;" onclick="App.submitQuickLogin('RivalsBuyer_' + Math.floor(Math.random()*900+100))">
+              👤 顧客隨機身分
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 彈窗 3：下單成功專用彈窗 (需求三) -->
+  <div id="order-success-modal" class="tactical-modal-backdrop">
+    <div class="tactical-modal-card order-success-card">
+      <div class="modal-body" style="padding: 36px 30px;">
+        <div class="success-hero-icon">🎉</div>
+        <h3 class="success-title">訂單已成功成立！</h3>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">
+          感謝您的選購！我們已為您完成商城訂單開立。
+        </p>
+
+        <div class="success-badge-row">
+          <div class="success-badge-box">
+            <div class="label">訂單編號</div>
+            <div id="success-order-id" class="val">#RV-0000</div>
+          </div>
+          <div class="success-badge-box">
+            <div class="label">應付總額</div>
+            <div id="success-total-amount" class="val">R$ 0</div>
+          </div>
+        </div>
+
+        <!-- 依據規格：機器人通知與引導 -->
+        <div class="success-discord-notice">
+          <div class="notice-title">
+            <span>🤖 Discord 機器人已建立專屬私人交易頻道！</span>
+          </div>
+          <p class="notice-desc">
+            請立即回到 <strong>Discord 伺服器群組</strong>，在為您新開立的私人交易頻道內，傳送您的 <span class="notice-pin-highlight">Roblox 禮品卡序號 (PIN碼)</span> 或截圖，業主核銷入帳後將立即為您出貨！
+          </p>
+        </div>
+
+        <div class="auto-logout-pill">
+          🔒 安全提示：為保障您的帳號隱私，本網站已自動將您的 Discord 身分登出。
+        </div>
+
+        <button class="btn-submit-order" style="width: 100%;" onclick="App.closeOrderSuccessModal()">
+          完成並關閉視窗
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 彈窗 4：業主後台管理面板 (wenio0509) -->
+  <div id="admin-modal" class="tactical-modal-backdrop">
+    <div class="tactical-modal-card admin-modal-card">
+      <div class="modal-header">
+        <h3>👑 業主專屬商品控制台 (wenio0509)</h3>
+        <button class="btn-modal-close" onclick="AdminService.closeAdminModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        
+        <div class="admin-stats-bar">
+          <div>
+            <strong>商品庫存數量：</strong> <span id="admin-product-count" style="color: var(--accent-gold); font-weight: 700;">0</span> 項
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-admin-action" onclick="AdminService.openEditForm(null)">➕ 新增道具</button>
+            <button class="btn-admin-action" onclick="AdminService.resetToDefaults()">🔄 還原預設</button>
+          </div>
+        </div>
+
+        <!-- 商品清單表格 -->
+        <div class="admin-table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>商品名稱 / 稀有度</th>
+                <th>售價 (R$)</th>
+                <th>原價 (R$)</th>
+                <th>販售狀態</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="admin-products-tbody">
+              <!-- JS 動態生成 -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- API 伺服器自訂設定 -->
+        <div style="margin-top: 16px; background: var(--bg-surface); padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+          <div style="flex-grow: 1; min-width: 240px;">
+            <div style="font-size: 0.72rem; color: var(--text-muted);">後端 API 伺服器端點 (Discord Bot)：</div>
+            <input type="text" id="admin-api-url-input" class="search-input" style="height: 32px; font-size: 0.8rem; width: 100%;">
+          </div>
+          <button class="btn-admin-action" style="align-self: flex-end;" onclick="AdminService.saveApiUrl()">更新 API 網址</button>
+        </div>
+
+        <div class="admin-footer-bar">
+          <span style="font-size: 0.8rem; color: var(--text-muted);">
+            💡 修改價格後，請點擊「儲存並同步」以寫入後端伺服器！
+          </span>
+          <button id="btn-admin-sync-save" class="btn-submit-order" style="width: auto; padding: 0 24px; height: 42px;" onclick="AdminService.syncToServer()">
+            💾 儲存並同步至 Discord Bot
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 彈窗 5：新增/編輯商品詳細表單 -->
+  <div id="product-edit-modal" class="tactical-modal-backdrop">
+    <div class="tactical-modal-card" style="max-width: 540px;">
+      <div class="modal-header">
+        <h3 id="product-edit-modal-title">✏️ 編輯商品</h3>
+        <button class="btn-modal-close" onclick="AdminService.closeEditForm()">✕</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="AdminService.saveEditForm(event)">
+          <input type="hidden" id="edit-prod-id">
+
+          <div style="margin-bottom: 12px;">
+            <label style="display:block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">商品名稱：</label>
+            <input type="text" id="edit-prod-name" class="search-input" required style="width:100%;">
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+            <div style="flex: 1;">
+              <label style="display:block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">分類：</label>
+              <select id="edit-prod-category" class="search-input" style="width: 100%; padding-left: 10px;">
+                <option value="鑰匙與箱子">鑰匙與箱子</option>
+                <option value="限定武器造型">限定武器造型</option>
+                <option value="通行證與特權">通行證與特權</option>
+                <option value="自訂特效">自訂特效</option>
+              </select>
+            </div>
+            <div style="flex: 1;">
+              <label style="display:block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">稀有度：</label>
+              <select id="edit-prod-rarity" class="search-input" style="width: 100%; padding-left: 10px;">
+                <option value="mythic">神話 (Mythic - 紅)</option>
+                <option value="legendary">傳奇 (Legendary - 金)</option>
+                <option value="epic">史詩 (Epic - 紫)</option>
+                <option value="rare">稀有 (Rare - 藍)</option>
+                <option value="common">一般 (Common - 灰)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+            <div style="flex: 1;">
+              <label style="display:block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">售價 (R$)：</label>
+              <input type="number" id="edit-prod-price" class="search-input" required min="0" style="width:100%;">
+            </div>
+            <div style="flex: 1;">
+              <label style="display:block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">原價 (R$)：</label>
+              <input type="number" id="edit-prod-origprice" class="search-input" min="0" style="width:100%;">
+            </div>
+          </div>
+
+          <div style="margin-bottom: 12px;">
+            <label style="display:block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">圖片 URL：</label>
+            <input type="url" id="edit-prod-image" class="search-input" required style="width:100%;">
+          </div>
+
+          <div style="margin-bottom: 12px;">
+            <label style="display:block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">促銷標籤 (可選)：</label>
+            <input type="text" id="edit-prod-badge" class="search-input" placeholder="例：HOT 熱銷、特惠 8折" style="width:100%;">
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <label style="display:block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">商品描述：</label>
+            <textarea id="edit-prod-desc" class="search-input" rows="3" style="width: 100%; height: auto; padding: 10px;"></textarea>
+          </div>
+
+          <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="edit-prod-stock" checked>
+            <label for="edit-prod-stock" style="font-size: 0.85rem; color: #fff;">上架販售中</label>
+          </div>
+
+          <button type="submit" class="btn-submit-order" style="width: 100%;">儲存商品內容</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast 訊息容器 -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- 引入模組腳本 -->
+  <script src="js/config.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
